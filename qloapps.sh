@@ -1,8 +1,8 @@
 #!/bin/bash
 # VAGRANT PROVISIONING SCRIPT FOR QLOAPPS
-# AUTHOR: Alankrit Srivastava
+# AUTHOR: Anuj Mishra
 # Webkul Software Pvt. Limited.
-# Operating System: Ubuntu 18.04
+# Operating System: Ubuntu 20.04
 
 ##########################################################################################################
 # This block contains variables to be defined by user. Before running this script, you must ensure that: #
@@ -14,15 +14,16 @@
 # throw errors and destroy configuration for first user.                                                 #
 ##########################################################################################################
 
-domain_name=                                                                          ## mention the domain name
+# Manually set the user to 'qloapps'
+user="your_username_here"  # Define the user manually
 
-database_host=""                                                                         ## mention database host.
+domain_name="your_domain_here"                                                                        ## mention the domain name
 
-database_name=""                                                                        ## mention database name
+database_host="localhost"                                                                         ## mention database host.
+
+database_name="qloapps"                                                                        ## mention database name
 
 mysql_root_password=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1`  ## randomly generated database 
-
-
 
 database_Connectivity() {
 echo "CHECKING DATABASE HOST CONNECTIVITY"
@@ -46,7 +47,6 @@ echo "DATABASE $database_name IS FREE TO BE USED"
 fi
 }
 
-
 lamp_Installation() {
 ##update server
 apt-get update \
@@ -57,19 +57,19 @@ apt-get update \
     && apt-get update \
     && apt-get install -y software-properties-common \
     && apt-get install -y language-pack-en-base \
-    && LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php \
+    && LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive add-apt-repository -y ppa:ondrej/php \
     && apt-get update \
-    && apt-get -y install php7.2 php7.2-curl php7.2-intl php7.2-gd php7.2-dom php7.2-iconv php7.2-xsl php7.2-mbstring php7.2-ctype php7.2-zip php7.2-pdo php7.2-xml php7.2-bz2 php7.2-calendar php7.2-exif php7.2-fileinfo php7.2-json php7.2-mysqli php7.2-mysql php7.2-posix php7.2-tokenizer php7.2-xmlwriter php7.2-xmlreader php7.2-phar php7.2-soap php7.2-mysql php7.2-fpm php7.2-bcmath libapache2-mod-php7.2 \
-    && sed -i -e"s/^memory_limit\s*=\s*128M/memory_limit = 512M/" /etc/php/7.2/apache2/php.ini \
-    && echo "date.timezone = Asia/Kolkata" >> /etc/php/7.2/apache2/php.ini \
-    && sed -i -e"s/^upload_max_filesize\s*=\s*2M/upload_max_filesize = 16M/" /etc/php/7.2/apache2/php.ini \
-    && sed -i -e"s/^max_execution_time\s*=\s*30/max_execution_time = 500/" /etc/php/7.2/apache2/php.ini
+    && apt-get -y install php7.4 php7.4-curl php7.4-intl php7.4-gd php7.4-dom php7.4-iconv php7.4-xsl php7.4-mbstring php7.4-ctype php7.4-zip php7.4-pdo php7.4-xml php7.4-bz2 php7.4-calendar php7.4-exif php7.4-fileinfo php7.4-json php7.4-mysqli php7.4-mysql php7.4-posix php7.4-tokenizer php7.4-xmlwriter php7.4-xmlreader php7.4-phar php7.4-soap php7.4-fpm php7.4-bcmath libapache2-mod-php7.4 \
+    && sed -i -e"s/^memory_limit\s*=\s*128M/memory_limit = 512M/" /etc/php/7.4/apache2/php.ini \
+    && echo "date.timezone = Asia/Kolkata" >> /etc/php/7.4/apache2/php.ini \
+    && sed -i -e"s/^upload_max_filesize\s*=\s*2M/upload_max_filesize = 16M/" /etc/php/7.4/apache2/php.ini \
+    && sed -i -e"s/^max_execution_time\s*=\s*30/max_execution_time = 500/" /etc/php/7.4/apache2/php.ini
 
-##install mysql-server=5.7
+##install mysql-server=8.0
 export DEBIAN_FRONTEND="noninteractive"
-echo "mysql-server-5.7 mysql-server/root_password password $mysql_root_password" | debconf-set-selections
-echo "mysql-server-5.7 mysql-server/root_password_again password $mysql_root_password" | debconf-set-selections
-apt-get -y install mysql-server-5.7
+echo "mysql-server-8.0 mysql-server/root_password password $mysql_root_password" | debconf-set-selections
+echo "mysql-server-8.0 mysql-server/root_password_again password $mysql_root_password" | debconf-set-selections
+apt-get -y install mysql-server
 sleep 4
 database_Connectivity
 sleep 2
@@ -88,8 +88,8 @@ touch /etc/apache2/sites-enabled/qloapps.conf
 cat <<EOF >> /etc/apache2/sites-enabled/qloapps.conf
 <VirtualHost *:80> 
 ServerName $domain_name
-DocumentRoot /var/www/html/hotelcommerce
-<Directory  /var/www/html/hotelcommerce> 
+DocumentRoot /home/${user}/www 
+<Directory  /home/> 
 Options FollowSymLinks 
 Require all granted  
 AllowOverride all 
@@ -101,15 +101,16 @@ CustomLog /var/log/apache2/access.log combined
 </VirtualHost> 
 EOF
 }
-
+mkdir -p /home/${user}/www/
 qloapps_Download() {
 apt-get install -y git
-cd /var/www/html/ && git clone https://github.com/webkul/hotelcommerce.git
+cd /home/${user}/www/  && git clone https://github.com/Qloapps/QloApps.git
 
 ##ownership and permissions
-find /var/www/html/ -type f -exec chmod 644 {} \;
-find /var/www/html/ -type d -exec chmod 755 {} \;
-chown -R www-data:www-data /var/www/html/
+find /home/${user}/www/  -type f -exec chmod 644 {} \;
+find /home/${user}/www/  -type d -exec chmod 755 {} \;
+echo "changing ownership /home/${user}/www/ "
+chown -R www-data:www-data /home/${user} 
 
 ##restart servers
 /etc/init.d/apache2 restart
