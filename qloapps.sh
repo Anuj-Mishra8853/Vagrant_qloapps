@@ -88,7 +88,7 @@ touch /etc/apache2/sites-enabled/qloapps.conf
 cat <<EOF >> /etc/apache2/sites-enabled/qloapps.conf
 <VirtualHost *:80> 
 ServerName $domain_name
-DocumentRoot /home/${user}/www/Qloapps
+DocumentRoot /home/${user}/www/QloApps
 <Directory  /home/> 
 Options FollowSymLinks 
 Require all granted  
