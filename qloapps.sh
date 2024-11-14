@@ -88,7 +88,7 @@ touch /etc/apache2/sites-enabled/qloapps.conf
 cat <<EOF >> /etc/apache2/sites-enabled/qloapps.conf
 <VirtualHost *:80> 
 ServerName $domain_name
-DocumentRoot /home/${user}/www 
+DocumentRoot /home/${user}/www/Qloapps
 <Directory  /home/> 
 Options FollowSymLinks 
 Require all granted  
@@ -104,7 +104,7 @@ EOF
 mkdir -p /home/${user}/www/
 qloapps_Download() {
 apt-get install -y git
-cd /home/${user}/www/  && git clone https://github.com/Qloapps/QloApps.git
+cd /home/${user}/www/  && git clone -b v1.6.1 https://github.com/Qloapps/QloApps.git
 
 ##ownership and permissions
 find /home/${user}/www/  -type f -exec chmod 644 {} \;
